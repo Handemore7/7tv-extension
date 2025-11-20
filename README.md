@@ -26,6 +26,10 @@ Add Twitch emotes to your videos! Browse thousands of emotes from [7TV](https://
 
 ### Easy Install (Recommended)
 
+### Download
+
+**[⬇️ Download Latest Release (v1.0.0)](https://github.com/YOUR_USERNAME/7tv-premiere-extension/releases/latest)**
+
 1. **Download** this extension folder
 2. **Run the installer**:
    - **Windows**: Right-click `install.bat` → Run as Administrator
@@ -112,10 +116,6 @@ Click the gear icon (⚙️) in the top-right to access:
 - Close and reopen the panel
 - Reduce import size to 2x or 3x
 
-## 🎯 Keyboard Shortcuts
-
-Currently, this extension uses mouse/click interactions only. Keyboard shortcuts may be added in future versions.
-
 ## 📝 Known Limitations
 
 - Emotes are imported as static files (not live-linked)
@@ -123,6 +123,7 @@ Currently, this extension uses mouse/click interactions only. Keyboard shortcuts
 - Maximum 100 emotes per page
 - Recent history limited to 20 emotes
 - Favorites stored in browser localStorage (limited to ~5MB)
+- No keyboard shortcuts
 
 ## 🤝 Contributing
 
