@@ -3,6 +3,8 @@ const API = {
   CDN_URL: 'https://cdn.7tv.app/emote',
   cache: new Map(),
   DEBUG: false,
+  TIMEOUT: 30000,
+  MAX_RETRIES: 2,
 
   async fetchAllEmotes(page = 1, limit = 100) {
     const cacheKey = `all_${page}`;
@@ -33,7 +35,7 @@ const API = {
       
       if (this.DEBUG) console.log('[API] Fetching all emotes page', page);
       
-      const response = await fetch('https://7tv.io/v3/gql', {
+      const response = await this.fetchWithTimeout('https://7tv.io/v3/gql', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -130,7 +132,7 @@ const API = {
       
       if (this.DEBUG) console.log('[API] Sending GQL request...');
       
-      const response = await fetch('https://7tv.io/v3/gql', {
+      const response = await this.fetchWithTimeout('https://7tv.io/v3/gql', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -220,5 +222,25 @@ const API = {
 
   clearCache() {
     this.cache.clear();
+  },
+
+  async fetchWithTimeout(url, options = {}) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), this.TIMEOUT);
+    
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+      clearTimeout(timeout);
+      return response;
+    } catch (error) {
+      clearTimeout(timeout);
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout');
+      }
+      throw error;
+    }
   }
 };

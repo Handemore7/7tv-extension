@@ -1,132 +1,160 @@
-# 7TV Emotes for Adobe Premiere Pro
+# 🎬 7TV Emotes for Adobe Premiere Pro
 
-A CEP panel extension that integrates 7TV emotes directly into Adobe Premiere Pro, allowing you to browse, search, and add Twitch emotes to your video projects.
+Add Twitch emotes to your videos! Browse thousands of emotes from [7TV](https://7tv.app/) and import them directly into your Premiere Pro projects.
 
-## Overview
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Premiere Pro](https://img.shields.io/badge/Premiere%20Pro-2021%2B-purple)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-This plugin provides seamless access to the 7TV emote library (https://7tv.app/) within Premiere Pro. Browse thousands of emotes, search by name or tags, and drag them directly into your timeline.
+## ✨ Features
 
-## Technology Stack
+- 🔍 **Search & Browse** - Access thousands of emotes from the 7TV library
+- ⚡ **Quick Import** - Click any emote to add it to your project
+- ⭐ **Favorites** - Save your most-used emotes for quick access
+- 🕐 **Recent History** - Track your last 20 imported emotes
+- 🎨 **Animated Support** - Import both static and animated (GIF) emotes
+- 🎯 **Smart Filters** - Filter by animated, static, or zero-width emotes
+- ⚙️ **Customizable** - Choose import size (2x, 3x, or 4x resolution)
 
-- **Frontend**: HTML5, CSS3, JavaScript
-- **Premiere Pro API**: ExtendScript (JSX)
-- **CEP Version**: CEP 11 (Premiere Pro 2021+)
-- **7TV API**: REST API v3 (https://7tv.io/v3/)
-- **Image Formats**: WebP, GIF, PNG, JPEG
+## 📋 Requirements
 
-## Project Structure
+- **Adobe Premiere Pro 2021 or later** (version 15.0+)
+- **Windows 10/11** or **macOS 10.14+**
+- **Internet connection** (to download emotes)
 
-```
-7tv-premiere-plugin/
-├── CSXS/
-│   └── manifest.xml          # Extension configuration
-├── client/
-│   ├── index.html            # Panel UI
-│   ├── css/
-│   │   └── styles.css
-│   ├── js/
-│   │   ├── main.js           # UI logic
-│   │   ├── api.js            # 7TV API client
-│   │   └── premiere.js       # ExtendScript bridge
-├── host/
-│   └── index.jsx             # ExtendScript for Premiere Pro
-├── .debug                    # Debug configuration
-├── package.json
-└── README.md
-```
+## 🚀 Installation
 
-## Development Plan
+### Easy Install (Recommended)
 
-### Phase 1: Project Setup
-- [x] Create CEP extension folder structure
-- [x] Create manifest.xml with extension metadata
-- [x] Set up basic HTML panel structure
-- [x] Configure ExtendScript host file
-- [x] Set up .debug file for development
-- [x] Test extension loads in Premiere Pro
+1. **Download** this extension folder
+2. **Run the installer**:
+   - **Windows**: Right-click `install.bat` → Run as Administrator
+   - **Mac/Linux**: Run `npm install` in terminal
+3. **Restart Premiere Pro**
+4. **Open the panel**: Go to `Window > Extensions > 7TV Emotes`
 
-### Phase 2: 7TV Integration
-- [x] Implement 7TV API client
-  - [x] Fetch global emote sets
-  - [x] Search emotes by name
-  - [x] Handle pagination
-- [x] Create emote browser UI
-  - [x] Grid layout for emotes
-  - [x] Search bar
-  - [x] Filter options (animated/static)
-- [x] Implement image loading and caching
-- [x] Handle different image formats (WebP, GIF, PNG)
+📖 **Detailed instructions**: See [INSTALL.md](INSTALL.md)
 
-### Phase 3: Premiere Pro Integration
-- [x] Implement emote download functionality
-- [x] Create temp directory management
-- [x] ExtendScript: Import media to project
-- [x] ExtendScript: Add media to timeline at playhead
-- [x] Handle WebP to PNG/JPEG conversion if needed
-- [x] Handle animated emotes (GIF support)
-- [x] Fix API search to access full 7TV database
-- [x] Improve UX with emote count and status bar
+⚡ **Super quick guide**: See [QUICKSTART.md](QUICKSTART.md)
 
-### Phase 4: Polish & Features
-- [x] Add favorites system
-- [x] Implement recent emotes history
-- [ ] Add drag-and-drop to timeline
-- [x] Loading states and error handling
-- [ ] Emote preview on hover
-- [ ] Settings panel (default size, format preferences)
-- [x] Clean up temp files on close
+## 📖 How to Use
 
-## Installation (For Development)
+### Basic Usage
 
-1. Clone this repository
-2. Enable CEP debugging:
-   - Windows: Set `PlayerDebugMode` registry key to `1`
-   - Mac: Run `defaults write com.adobe.CSXS.11 PlayerDebugMode 1`
-3. Copy extension folder to:
-   - Windows: `C:\Program Files (x86)\Common Files\Adobe\CEP\extensions\`
-   - Mac: `/Library/Application Support/Adobe/CEP/extensions/`
+1. **Open the panel** from `Window > Extensions > 7TV Emotes`
+2. **Browse emotes** by scrolling through the grid
+3. **Search** by typing in the search bar (minimum 2 characters)
+4. **Click an emote** to import it to your project
+5. The emote will be added to your Project panel and ready to use!
+
+### Tabs
+
+- **All** - Browse all available emotes from 7TV
+- **Favorites** ⭐ - Quick access to your saved favorites
+- **Recent** 🕐 - View your last 20 imported emotes
+
+### Filters
+
+Use the filter buttons to narrow down results:
+- **Animated** - Show only animated (GIF) emotes
+- **Static** - Show only static (PNG/WebP) emotes
+- **Zero-Width** - Show only zero-width emotes (overlay emotes)
+
+### Settings ⚙️
+
+Click the gear icon (⚙️) in the top-right to access:
+- **Import Size** - Choose resolution: 2x (128px), 3x (192px), or 4x (256px)
+- **Clear Cache** - Clear stored API data
+- **Clear Favorites** - Remove all saved favorites
+- **Debug Mode** - Enable console logging (for troubleshooting)
+
+### Tips & Tricks
+
+- **Add to Favorites**: Click the ☆ icon on any emote
+- **Remove from Favorites**: Click the ★ icon on favorited emotes
+- **Quick Search**: Type at least 2 characters to search
+- **Pagination**: Use ← → buttons to browse more emotes
+- **Import Size**: Higher resolution = better quality but larger file size
+
+## 🔧 Troubleshooting
+
+### Extension doesn't appear in Premiere Pro
+
+**Enable CEP Debugging:**
+
+**Windows:**
+1. Press `Win + R` and type `regedit`
+2. Navigate to `HKEY_CURRENT_USER\Software\Adobe\CSXS.11`
+3. Create a new String value named `PlayerDebugMode` with value `1`
 4. Restart Premiere Pro
-5. Open panel: Window > Extensions > 7TV Emotes
 
-## 7TV API Reference
+**Mac:**
+1. Open Terminal
+2. Run: `defaults write com.adobe.CSXS.11 PlayerDebugMode 1`
+3. Restart Premiere Pro
 
-- **Base URL**: `https://7tv.io/v3/`
-- **Global Emotes**: `GET /emote-sets/global`
-- **Search Emotes**: `GET /emotes?query={search}`
-- **CDN URL**: `https://cdn.7tv.app/emote/{emote_id}/{size}.{format}`
-  - Sizes: `1x`, `2x`, `3x`, `4x`
-  - Formats: `webp`, `avif`, `gif`
+### Emotes won't import
 
-## Key Challenges & Solutions
+- Check your internet connection
+- Make sure you have write permissions to your temp folder
+- Try clearing the cache (Settings > Clear Cache)
+- Enable Debug Mode to see error messages
 
-| Challenge | Solution |
-|-----------|----------|
-| WebP Support | Convert to PNG/JPEG before importing to Premiere |
-| Animated Emotes | Prioritize GIF format, convert WebP animations if needed |
-| File Management | Download to temp folder, clean up after import |
-| Performance | Lazy loading, image caching, pagination |
+### Search not working
 
-## Requirements
+- Make sure you type at least 2 characters
+- Wait 300ms after typing (search is debounced)
+- Try clearing the cache and searching again
 
-- Adobe Premiere Pro 2021 or later
-- Windows 10/11 or macOS 10.14+
-- Internet connection for fetching emotes
+### Extension is slow
 
-## Contributing
+- Clear the cache (Settings > Clear Cache)
+- Close and reopen the panel
+- Reduce import size to 2x or 3x
 
-This is an open-source project. Contributions are welcome!
+## 🎯 Keyboard Shortcuts
 
-## License
+Currently, this extension uses mouse/click interactions only. Keyboard shortcuts may be added in future versions.
 
-MIT License
+## 📝 Known Limitations
 
-## Credits
+- Emotes are imported as static files (not live-linked)
+- WebP format is converted to PNG/GIF before import
+- Maximum 100 emotes per page
+- Recent history limited to 20 emotes
+- Favorites stored in browser localStorage (limited to ~5MB)
 
-- 7TV Platform: https://7tv.app/
-- 7TV GitHub: https://github.com/SevenTV
+## 🤝 Contributing
+
+This is an open-source project! Contributions, issues, and feature requests are welcome.
+
+## 📄 License
+
+MIT License - feel free to use and modify!
+
+## 🙏 Credits
+
+- **7TV Platform**: [https://7tv.app/](https://7tv.app/)
+- **7TV API**: [https://7tv.io/](https://7tv.io/)
+- **7TV GitHub**: [https://github.com/SevenTV](https://github.com/SevenTV)
+
+## 📚 Documentation
+
+- **[QUICKSTART.md](QUICKSTART.md)** - Get started in 60 seconds
+- **[INSTALL.md](INSTALL.md)** - Detailed installation guide
+- **[DOCUMENTATION.md](DOCUMENTATION.md)** - Full technical documentation
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history
+
+## 📞 Support
+
+Having issues?
+1. Check [INSTALL.md](INSTALL.md) for installation help
+2. Read [DOCUMENTATION.md](DOCUMENTATION.md) for technical details
+3. Enable Debug Mode in settings to see error logs
+4. Open an issue on GitHub with debug logs
 
 ---
 
-**Status**: 🚧 In Development
+**Made with ❤️ for the streaming community**
 
-Last Updated: 2024
+*Not affiliated with 7TV or Twitch*
