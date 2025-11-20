@@ -3,6 +3,69 @@ const API = {
   CDN_URL: 'https://cdn.7tv.app/emote',
   cache: new Map(),
 
+  async fetchAllEmotes(page = 1, limit = 100) {
+    const cacheKey = `all_${page}`;
+    if (this.cache.has(cacheKey)) {
+      console.log('[API] Returning cached all emotes page', page);
+      return this.cache.get(cacheKey);
+    }
+
+    try {
+      const gqlQuery = `
+        query AllEmotes($query: String!, $page: Int, $limit: Int) {
+          emotes(query: $query, page: $page, limit: $limit) {
+            count
+            items {
+              id
+              name
+              flags
+              animated
+              owner {
+                username
+                display_name
+              }
+            }
+          }
+        }
+      `;
+      
+      console.log('[API] Fetching all emotes page', page);
+      
+      const response = await fetch('https://7tv.io/v3/gql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: gqlQuery,
+          variables: { query: '', page, limit }
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('[API] All emotes response:', JSON.stringify(data).substring(0, 500));
+      console.log('[API] Has data.data?', !!data.data);
+      console.log('[API] Has emotes?', !!data.data?.emotes);
+      console.log('[API] Has items?', !!data.data?.emotes?.items);
+      
+      if (data.data?.emotes?.items) {
+        const result = {
+          emotes: this.normalizeEmotes(data.data.emotes.items),
+          total: data.data.emotes.count
+        };
+        this.cache.set(cacheKey, result);
+        return result;
+      }
+      
+      throw new Error('No data in response');
+    } catch (error) {
+      console.error('[API] Failed to fetch all emotes:', error);
+      throw error;
+    }
+  },
+
   async fetchGlobalEmotes() {
     if (this.cache.has('global')) {
       console.log('[API] Returning cached global emotes');

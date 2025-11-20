@@ -6,7 +6,7 @@ let totalCount = 0;
 let currentQuery = '';
 let isLoading = false;
 let searchTimeout = null;
-let debugMode = false;
+let debugMode = true;
 
 const Debug = {
   log(message, data = null) {
@@ -78,6 +78,9 @@ async function init() {
   document.getElementById('search').addEventListener('input', handleSearch);
   document.getElementById('filter-animated').addEventListener('change', applyFilters);
   document.getElementById('filter-static').addEventListener('change', applyFilters);
+  document.getElementById('debug-console').style.display = 'block';
+  document.getElementById('debug-mode').checked = true;
+  
   document.getElementById('debug-mode').addEventListener('change', (e) => {
     debugMode = e.target.checked;
     document.getElementById('debug-console').style.display = debugMode ? 'block' : 'none';
@@ -88,10 +91,10 @@ async function init() {
   document.getElementById('next-page').addEventListener('click', () => goToPage(currentPage + 1));
   
   Debug.log('Starting to load emotes...');
-  await loadEmotes();
+  await loadEmotes(1);
 }
 
-async function loadEmotes() {
+async function loadEmotes(page = 1) {
   const grid = document.getElementById('emote-grid');
   
   if (isLoading) {
@@ -99,16 +102,17 @@ async function loadEmotes() {
     return;
   }
   isLoading = true;
+  grid.innerHTML = '<div class="loading">Loading emotes...</div>';
   
   try {
-    Debug.log('Fetching global emotes from API...');
-    allEmotes = await API.fetchGlobalEmotes();
-    Debug.log('Emotes fetched', { count: allEmotes.length });
+    Debug.log('Fetching all emotes page', page);
+    const result = await API.fetchAllEmotes(page);
+    Debug.log('Emotes fetched', { count: result.emotes.length, total: result.total });
     
-    filteredEmotes = [...allEmotes];
-    totalCount = allEmotes.length;
-    currentPage = 1;
-    totalPages = 1;
+    filteredEmotes = result.emotes;
+    totalCount = result.total;
+    currentPage = page;
+    totalPages = result.total > 100 ? 999 : Math.ceil(result.total / 100);
     currentQuery = '';
     
     Debug.log('Rendering emotes...');
@@ -132,13 +136,7 @@ function handleSearch(e) {
     Debug.log('Search query', query);
     
     if (query.length === 0) {
-      filteredEmotes = [...allEmotes];
-      totalCount = allEmotes.length;
-      currentPage = 1;
-      totalPages = 1;
-      currentQuery = '';
-      applyFilters();
-      updatePagination();
+      await loadEmotes(1);
     } else if (query.length >= 2) {
       await performSearch(query, 1);
     }
@@ -182,15 +180,23 @@ function updatePagination() {
   const pageInfo = document.getElementById('page-info');
   
   prevBtn.disabled = currentPage === 1;
-  nextBtn.disabled = currentPage >= totalPages;
-  pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+  nextBtn.disabled = false;
+  
+  if (totalPages === 999) {
+    pageInfo.textContent = `Page ${currentPage} of many...`;
+  } else {
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+  }
 }
 
 async function goToPage(page) {
-  if (page < 1 || page > totalPages || isLoading) return;
+  if (page < 1 || isLoading) return;
+  if (page > totalPages && totalPages !== 999) return;
   
   if (currentQuery) {
     await performSearch(currentQuery, page);
+  } else {
+    await loadEmotes(page);
   }
 }
 
