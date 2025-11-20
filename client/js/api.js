@@ -20,6 +20,7 @@ const API = {
               name
               flags
               animated
+              tags
               owner {
                 username
                 display_name
@@ -114,6 +115,7 @@ const API = {
               name
               flags
               animated
+              tags
               owner {
                 username
                 display_name
@@ -188,11 +190,13 @@ const API = {
       const data = emote.data || emote;
       const flags = data.flags || 0;
       const animated = data.animated || (flags & 1) === 1;
+      const zeroWidth = (flags & 256) === 256;
       
       return {
         id: data.id,
         name: data.name,
         animated: animated,
+        zeroWidth: zeroWidth,
         tags: data.tags || [],
         owner: data.owner?.display_name || data.owner?.username || 'Unknown'
       };

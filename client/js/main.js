@@ -6,10 +6,12 @@ let totalCount = 0;
 let currentQuery = '';
 let isLoading = false;
 let searchTimeout = null;
-let debugMode = true;
+
+let debugMode = false;
 let favorites = [];
 let recentEmotes = [];
 const MAX_RECENT = 20;
+let importSize = '4x';
 
 const Debug = {
   log(message, data = null) {
@@ -84,9 +86,7 @@ async function init() {
   document.getElementById('search').addEventListener('input', handleSearch);
   document.getElementById('filter-animated').addEventListener('change', applyFilters);
   document.getElementById('filter-static').addEventListener('change', applyFilters);
-  document.getElementById('debug-console').style.display = 'block';
-  document.getElementById('debug-mode').checked = true;
-  
+  document.getElementById('filter-zero-width').addEventListener('change', applyFilters);
   document.getElementById('debug-mode').addEventListener('change', (e) => {
     debugMode = e.target.checked;
     document.getElementById('debug-console').style.display = debugMode ? 'block' : 'none';
@@ -99,6 +99,32 @@ async function init() {
   document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', (e) => handleTabChange(e.target.dataset.tab));
   });
+  
+  document.getElementById('settings-btn').addEventListener('click', toggleSettings);
+  document.getElementById('import-size').addEventListener('change', (e) => {
+    importSize = e.target.value;
+    localStorage.setItem('7tv_import_size', importSize);
+  });
+  document.getElementById('clear-cache').addEventListener('click', () => {
+    API.clearCache();
+    showNotification('Cache cleared');
+  });
+  document.getElementById('clear-favorites').addEventListener('click', () => {
+    if (confirm('Clear all favorites?')) {
+      favorites = [];
+      saveFavorites();
+      showNotification('Favorites cleared');
+      if (document.querySelector('.tab.active').dataset.tab === 'favorites') {
+        handleTabChange('favorites');
+      }
+    }
+  });
+  
+  const savedSize = localStorage.getItem('7tv_import_size');
+  if (savedSize) {
+    importSize = savedSize;
+    document.getElementById('import-size').value = savedSize;
+  }
   
   Debug.log('Starting to load emotes...');
   await loadEmotes(1);
@@ -213,10 +239,12 @@ async function goToPage(page) {
 function applyFilters() {
   const showAnimated = document.getElementById('filter-animated').checked;
   const showStatic = document.getElementById('filter-static').checked;
+  const zeroWidthOnly = document.getElementById('filter-zero-width').checked;
   
-  const filtered = filteredEmotes.filter(emote => {
+  let filtered = filteredEmotes.filter(emote => {
     if (emote.animated && !showAnimated) return false;
     if (!emote.animated && !showStatic) return false;
+    if (zeroWidthOnly && !emote.zeroWidth) return false;
     return true;
   });
   
@@ -390,6 +418,19 @@ function addToRecent(emote) {
   saveRecent();
 }
 
+function toggleSettings() {
+  const menu = document.getElementById('settings-menu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('settings-menu');
+  const btn = document.getElementById('settings-btn');
+  if (menu && !menu.contains(e.target) && e.target !== btn) {
+    menu.style.display = 'none';
+  }
+});
+
 async function handleEmoteClick(emote, isFavoriteAction = false) {
   if (isFavoriteAction) {
     toggleFavorite(emote);
@@ -399,13 +440,24 @@ async function handleEmoteClick(emote, isFavoriteAction = false) {
   const item = event.currentTarget;
   item.classList.add('importing');
   
+  const progressBar = document.createElement('div');
+  progressBar.className = 'progress-bar';
+  const progressFill = document.createElement('div');
+  progressFill.className = 'progress-fill';
+  progressBar.appendChild(progressFill);
+  item.appendChild(progressBar);
+  
   const format = API.getBestFormat(emote.animated);
-  const url = API.getEmoteUrl(emote.id, '4x', format);
+  const url = API.getEmoteUrl(emote.id, importSize, format);
   
   Debug.log('Importing emote', { name: emote.name, url, animated: emote.animated });
   
   try {
-    const result = await Premiere.downloadAndImport(emote.id, emote.name, url, emote.animated);
+    progressFill.style.width = '30%';
+    const result = await Premiere.downloadAndImport(emote.id, emote.name, url, emote.animated, (progress) => {
+      progressFill.style.width = `${30 + (progress * 0.7)}%`;
+    });
+    progressFill.style.width = '100%';
     
     addToRecent(emote);
     
@@ -420,7 +472,10 @@ async function handleEmoteClick(emote, isFavoriteAction = false) {
     Debug.error('Import failed', error);
     showNotification(`✗ Failed: ${error.message}`, true);
   } finally {
-    item.classList.remove('importing');
+    setTimeout(() => {
+      item.classList.remove('importing');
+      progressBar.remove();
+    }, 300);
   }
 }
 

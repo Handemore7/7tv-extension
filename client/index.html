@@ -13,7 +13,29 @@
       <div class="search-container">
         <input type="text" id="search" placeholder="Search emotes...">
       </div>
+      <button class="settings-btn" id="settings-btn" title="Settings">⚙</button>
     </header>
+    
+    <div class="settings-menu" id="settings-menu" style="display: none;">
+      <div class="settings-item">
+        <label><input type="checkbox" id="debug-mode"> Debug Mode</label>
+      </div>
+      <div class="settings-item">
+        <label>Import Size:
+          <select id="import-size">
+            <option value="2x">Medium (2x)</option>
+            <option value="3x">Large (3x)</option>
+            <option value="4x" selected>Extra Large (4x)</option>
+          </select>
+        </label>
+      </div>
+      <div class="settings-item">
+        <button id="clear-cache" class="settings-action">Clear Cache</button>
+      </div>
+      <div class="settings-item">
+        <button id="clear-favorites" class="settings-action">Clear Favorites</button>
+      </div>
+    </div>
     
     <div class="tabs">
       <button class="tab active" data-tab="all">All</button>
@@ -22,9 +44,14 @@
     </div>
     
     <div class="filters">
-      <label><input type="checkbox" id="filter-animated" checked> Animated</label>
-      <label><input type="checkbox" id="filter-static" checked> Static</label>
-      <label><input type="checkbox" id="debug-mode"> Debug</label>
+      <div class="filter-group">
+        <label><input type="checkbox" id="filter-animated" checked> Animated</label>
+        <label><input type="checkbox" id="filter-static" checked> Static</label>
+      </div>
+      <div class="filter-group">
+        <label><input type="checkbox" id="filter-zero-width"> Zero-Width Only</label>
+      </div>
+
       <div class="emote-count" id="emote-count"></div>
     </div>
     

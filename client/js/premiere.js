@@ -40,7 +40,7 @@ const Premiere = {
     });
   },
 
-  async downloadAndImport(emoteId, emoteName, emoteUrl, isAnimated) {
+  async downloadAndImport(emoteId, emoteName, emoteUrl, isAnimated, progressCallback) {
     try {
       const response = await fetch(emoteUrl);
       if (!response.ok) {
@@ -63,6 +63,9 @@ const Premiere = {
       
       for (let i = 0; i < bytes.length; i += chunkSize) {
         const chunkNum = Math.floor(i / chunkSize) + 1;
+        const progress = (chunkNum / totalChunks) * 100;
+        if (progressCallback) progressCallback(progress);
+        
         Debug.log(`Writing chunk ${chunkNum}/${totalChunks}`);
         const chunk = Array.from(bytes.slice(i, Math.min(i + chunkSize, bytes.length)));
         await this.evalScript(`writeFileChunk([${chunk.join(',')}])`);
