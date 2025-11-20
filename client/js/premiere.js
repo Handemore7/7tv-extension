@@ -8,8 +8,6 @@ const Premiere = {
         console.log('[Premiere] CSInterface initialized successfully');
       } else {
         console.error('[Premiere] CSInterface or __adobe_cep__ not available');
-        console.log('[Premiere] CSInterface type:', typeof CSInterface);
-        console.log('[Premiere] __adobe_cep__:', window.__adobe_cep__);
       }
     } catch (error) {
       console.error('[Premiere] Failed to initialize CSInterface:', error);
@@ -24,7 +22,7 @@ const Premiere = {
       }
       
       this.csInterface.evalScript(script, (result) => {
-        if (result === 'EvalScript error') {
+        if (result === 'EvalScript error' || result === undefined) {
           reject(new Error('ExtendScript execution failed'));
         } else {
           try {
@@ -35,7 +33,7 @@ const Premiere = {
               reject(new Error(parsed.error || 'Unknown error'));
             }
           } catch (e) {
-            resolve({ success: true, result });
+            reject(new Error('Parse error: ' + result.substring(0, 100)));
           }
         }
       });
@@ -43,58 +41,52 @@ const Premiere = {
   },
 
   async downloadAndImport(emoteId, emoteName, emoteUrl, isAnimated) {
-    console.log('[Premiere] Starting download:', emoteName, emoteUrl);
-    
     try {
       const response = await fetch(emoteUrl);
       if (!response.ok) {
         throw new Error(`Download failed: ${response.status}`);
       }
       
-      const blob = await response.blob();
-      const reader = new FileReader();
+      const arrayBuffer = await response.arrayBuffer();
+      const bytes = new Uint8Array(arrayBuffer);
       
-      const base64Data = await new Promise((resolve, reject) => {
-        reader.onloadend = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-      
-      console.log('[Premiere] Downloaded, size:', blob.size, 'bytes');
+      Debug.log('Downloaded', bytes.length + ' bytes');
       
       const extension = isAnimated ? 'gif' : 'webp';
       const fileName = emoteName.replace(/[^a-zA-Z0-9_-]/g, '_') + '_' + emoteId.substring(0, 8) + '.' + extension;
       
-      const script = `importEmoteFromBase64('${fileName}', '${base64Data}')`;
-      const result = await this.evalScript(script);
+      Debug.log('Starting file write', fileName);
+      await this.evalScript(`startFileWrite('${fileName}')`);
       
-      console.log('[Premiere] Import result:', result);
+      const chunkSize = 1000;
+      const totalChunks = Math.ceil(bytes.length / chunkSize);
+      
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        const chunkNum = Math.floor(i / chunkSize) + 1;
+        Debug.log(`Writing chunk ${chunkNum}/${totalChunks}`);
+        const chunk = Array.from(bytes.slice(i, Math.min(i + chunkSize, bytes.length)));
+        await this.evalScript(`writeFileChunk([${chunk.join(',')}])`);
+      }
+      
+      Debug.log('Finishing import...');
+      const result = await this.evalScript('finishFileWrite()');
+      
+      Debug.log('Import complete');
       return result;
     } catch (error) {
-      console.error('[Premiere] Import failed:', error);
+      Debug.error('Import failed', error.message);
+      try {
+        await this.evalScript('cleanupFailedWrite()');
+      } catch (e) {}
       throw error;
     }
   },
 
   async cleanupTempFiles() {
-    console.log('[Premiere] Cleaning up temp files...');
     try {
       await this.evalScript('cleanupTempFiles()');
-      console.log('[Premiere] Cleanup complete');
     } catch (error) {
       console.error('[Premiere] Cleanup failed:', error);
-    }
-  },
-
-  async testDownload() {
-    console.log('[Premiere] Testing download...');
-    try {
-      const result = await this.evalScript('testDownload()');
-      console.log('[Premiere] Test result:', result);
-      return result;
-    } catch (error) {
-      console.error('[Premiere] Test failed:', error);
-      throw error;
     }
   }
 };
