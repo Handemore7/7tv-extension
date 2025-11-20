@@ -138,6 +138,35 @@ h1 {
   padding: 8px;
 }
 
+.fav-btn {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  color: #ffd700;
+  font-size: 16px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 10;
+}
+
+.emote-item:hover .fav-btn {
+  opacity: 1;
+}
+
+.fav-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+  transform: scale(1.1);
+}
+
 .emote-item.importing {
   opacity: 0.5;
   pointer-events: none;
@@ -291,6 +320,34 @@ h1 {
   color: #00ff7f;
   font-size: 12px;
   font-weight: bold;
+}
+
+.tabs {
+  display: flex;
+  background: #1e1e1e;
+  border-bottom: 1px solid #333;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+}
+
+.tab:hover {
+  color: #e0e0e0;
+  background: #252525;
+}
+
+.tab.active {
+  color: #00ff7f;
+  border-bottom-color: #00ff7f;
 }
 
 .filters {

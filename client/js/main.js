@@ -7,6 +7,9 @@ let currentQuery = '';
 let isLoading = false;
 let searchTimeout = null;
 let debugMode = true;
+let favorites = [];
+let recentEmotes = [];
+const MAX_RECENT = 20;
 
 const Debug = {
   log(message, data = null) {
@@ -68,6 +71,9 @@ if (typeof console !== 'undefined') {
 async function init() {
   Debug.log('Initializing extension...');
   
+  loadFavorites();
+  loadRecent();
+  
   try {
     Premiere.init();
     Debug.log('Premiere bridge initialized');
@@ -89,6 +95,10 @@ async function init() {
   
   document.getElementById('prev-page').addEventListener('click', () => goToPage(currentPage - 1));
   document.getElementById('next-page').addEventListener('click', () => goToPage(currentPage + 1));
+  
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', (e) => handleTabChange(e.target.dataset.tab));
+  });
   
   Debug.log('Starting to load emotes...');
   await loadEmotes(1);
@@ -272,13 +282,120 @@ function renderEmotes(emotes = filteredEmotes) {
     item.appendChild(img);
     item.appendChild(name);
     
+    const favBtn = document.createElement('button');
+    favBtn.className = 'fav-btn';
+    favBtn.innerHTML = isFavorite(emote.id) ? '★' : '☆';
+    favBtn.title = 'Add to favorites';
+    favBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleFavorite(emote);
+      favBtn.innerHTML = isFavorite(emote.id) ? '★' : '☆';
+    });
+    item.appendChild(favBtn);
+    
     item.addEventListener('click', () => handleEmoteClick(emote));
     
     grid.appendChild(item);
   });
 }
 
-async function handleEmoteClick(emote) {
+function handleTabChange(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+  
+  const searchInput = document.getElementById('search');
+  const pagination = document.getElementById('pagination');
+  
+  if (tab === 'favorites') {
+    searchInput.disabled = true;
+    pagination.style.display = 'none';
+    filteredEmotes = favorites;
+    renderEmotes();
+  } else if (tab === 'recent') {
+    searchInput.disabled = true;
+    pagination.style.display = 'none';
+    filteredEmotes = recentEmotes;
+    renderEmotes();
+  } else {
+    searchInput.disabled = false;
+    if (searchInput.value.trim()) {
+      performSearch(searchInput.value.trim(), 1);
+    } else {
+      loadEmotes(1);
+    }
+  }
+}
+
+function loadFavorites() {
+  try {
+    const stored = localStorage.getItem('7tv_favorites');
+    favorites = stored ? JSON.parse(stored) : [];
+  } catch (e) {
+    favorites = [];
+  }
+}
+
+function saveFavorites() {
+  try {
+    localStorage.setItem('7tv_favorites', JSON.stringify(favorites));
+  } catch (e) {
+    Debug.error('Failed to save favorites', e);
+  }
+}
+
+function isFavorite(emoteId) {
+  return favorites.some(e => e.id === emoteId);
+}
+
+function toggleFavorite(emote) {
+  const index = favorites.findIndex(e => e.id === emote.id);
+  if (index > -1) {
+    favorites.splice(index, 1);
+    showNotification(`Removed ${emote.name} from favorites`);
+  } else {
+    favorites.unshift(emote);
+    showNotification(`Added ${emote.name} to favorites`);
+  }
+  saveFavorites();
+  
+  const activeTab = document.querySelector('.tab.active').dataset.tab;
+  if (activeTab === 'favorites') {
+    handleTabChange('favorites');
+  }
+}
+
+function loadRecent() {
+  try {
+    const stored = localStorage.getItem('7tv_recent');
+    recentEmotes = stored ? JSON.parse(stored) : [];
+  } catch (e) {
+    recentEmotes = [];
+  }
+}
+
+function saveRecent() {
+  try {
+    localStorage.setItem('7tv_recent', JSON.stringify(recentEmotes));
+  } catch (e) {
+    Debug.error('Failed to save recent', e);
+  }
+}
+
+function addToRecent(emote) {
+  recentEmotes = recentEmotes.filter(e => e.id !== emote.id);
+  recentEmotes.unshift(emote);
+  if (recentEmotes.length > MAX_RECENT) {
+    recentEmotes = recentEmotes.slice(0, MAX_RECENT);
+  }
+  saveRecent();
+}
+
+async function handleEmoteClick(emote, isFavoriteAction = false) {
+  if (isFavoriteAction) {
+    toggleFavorite(emote);
+    return;
+  }
+  
   const item = event.currentTarget;
   item.classList.add('importing');
   
@@ -289,6 +406,8 @@ async function handleEmoteClick(emote) {
   
   try {
     const result = await Premiere.downloadAndImport(emote.id, emote.name, url, emote.animated);
+    
+    addToRecent(emote);
     
     if (result.addedToTimeline) {
       showNotification(`✓ ${emote.name} added to timeline`);

@@ -68,13 +68,13 @@ This plugin provides seamless access to the 7TV emote library (https://7tv.app/)
 - [x] Improve UX with emote count and status bar
 
 ### Phase 4: Polish & Features
-- [ ] Add favorites system
-- [ ] Implement recent emotes history
+- [x] Add favorites system
+- [x] Implement recent emotes history
 - [ ] Add drag-and-drop to timeline
-- [ ] Loading states and error handling
+- [x] Loading states and error handling
 - [ ] Emote preview on hover
 - [ ] Settings panel (default size, format preferences)
-- [ ] Clean up temp files on close
+- [x] Clean up temp files on close
 
 ## Installation (For Development)
 
