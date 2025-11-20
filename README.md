@@ -6,6 +6,12 @@ Add Twitch emotes to your videos! Browse thousands of emotes from [7TV](https://
 ![Premiere Pro](https://img.shields.io/badge/Premiere%20Pro-2021%2B-purple)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+## 📸 Preview
+
+![7TV Extension Preview](screenshots/preview.png)
+
+*Browse and import thousands of emotes directly in Premiere Pro*
+
 ## ✨ Features
 
 - 🔍 **Search & Browse** - Access thousands of emotes from the 7TV library
