@@ -1,0 +1,12 @@
+{
+  "name": "7tv-premiere-extension",
+  "version": "1.0.0",
+  "description": "7TV emotes integration for Adobe Premiere Pro",
+  "main": "client/index.html",
+  "scripts": {
+    "install-dev": "echo 'Copy extension to CEP extensions folder'"
+  },
+  "keywords": ["premiere", "7tv", "emotes", "twitch", "cep"],
+  "author": "",
+  "license": "MIT"
+}

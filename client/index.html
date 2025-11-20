@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>7TV Emotes</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>7TV Emotes</h1>
+      <div class="search-container">
+        <input type="text" id="search" placeholder="Search emotes...">
+      </div>
+    </header>
+    
+    <div class="filters">
+      <label><input type="checkbox" id="filter-animated" checked> Animated</label>
+      <label><input type="checkbox" id="filter-static" checked> Static</label>
+    </div>
+    
+    <div id="emote-grid" class="emote-grid">
+      <div class="loading">Loading emotes...</div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/premiere.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
