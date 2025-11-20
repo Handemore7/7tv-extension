@@ -339,7 +339,7 @@ function renderEmotes(emotes = filteredEmotes) {
   });
 }
 
-function handleTabChange(tab) {
+async function handleTabChange(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
   
@@ -359,9 +359,9 @@ function handleTabChange(tab) {
   } else {
     searchInput.disabled = false;
     if (searchInput.value.trim()) {
-      performSearch(searchInput.value.trim(), 1);
+      await performSearch(searchInput.value.trim(), 1);
     } else {
-      loadEmotes(1);
+      await loadEmotes(1);
     }
   }
 }
@@ -379,7 +379,12 @@ function saveFavorites() {
   try {
     localStorage.setItem('7tv_favorites', JSON.stringify(favorites));
   } catch (e) {
-    Debug.error('Failed to save favorites', e);
+    if (e.name === 'QuotaExceededError') {
+      showNotification('Storage full! Cannot save favorites', true);
+      Debug.error('localStorage quota exceeded', e);
+    } else {
+      Debug.error('Failed to save favorites', e);
+    }
   }
 }
 
@@ -417,7 +422,16 @@ function saveRecent() {
   try {
     localStorage.setItem('7tv_recent', JSON.stringify(recentEmotes));
   } catch (e) {
-    Debug.error('Failed to save recent', e);
+    if (e.name === 'QuotaExceededError') {
+      recentEmotes = recentEmotes.slice(0, 10);
+      try {
+        localStorage.setItem('7tv_recent', JSON.stringify(recentEmotes));
+      } catch (e2) {
+        Debug.error('Failed to save recent after cleanup', e2);
+      }
+    } else {
+      Debug.error('Failed to save recent', e);
+    }
   }
 }
 
@@ -512,4 +526,20 @@ window.addEventListener('beforeunload', () => {
   Premiere.cleanupTempFiles();
 });
 
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    await init();
+  } catch (error) {
+    console.error('[7TV] Fatal initialization error:', error);
+    const app = document.getElementById('app');
+    if (app) {
+      app.innerHTML = `
+        <div style="padding: 20px; text-align: center; color: #ff6b6b;">
+          <h2>Failed to Initialize</h2>
+          <p>${error.message}</p>
+          <button onclick="location.reload()" style="margin-top: 10px; padding: 8px 16px; cursor: pointer;">Reload</button>
+        </div>
+      `;
+    }
+  }
+});

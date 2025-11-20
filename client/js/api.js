@@ -2,11 +2,12 @@ const API = {
   BASE_URL: 'https://7tv.io/v3',
   CDN_URL: 'https://cdn.7tv.app/emote',
   cache: new Map(),
+  DEBUG: false,
 
   async fetchAllEmotes(page = 1, limit = 100) {
     const cacheKey = `all_${page}`;
     if (this.cache.has(cacheKey)) {
-      console.log('[API] Returning cached all emotes page', page);
+      if (this.DEBUG) console.log('[API] Returning cached all emotes page', page);
       return this.cache.get(cacheKey);
     }
 
@@ -30,7 +31,7 @@ const API = {
         }
       `;
       
-      console.log('[API] Fetching all emotes page', page);
+      if (this.DEBUG) console.log('[API] Fetching all emotes page', page);
       
       const response = await fetch('https://7tv.io/v3/gql', {
         method: 'POST',
@@ -46,10 +47,12 @@ const API = {
       }
       
       const data = await response.json();
-      console.log('[API] All emotes response:', JSON.stringify(data).substring(0, 500));
-      console.log('[API] Has data.data?', !!data.data);
-      console.log('[API] Has emotes?', !!data.data?.emotes);
-      console.log('[API] Has items?', !!data.data?.emotes?.items);
+      if (this.DEBUG) {
+        console.log('[API] All emotes response:', JSON.stringify(data).substring(0, 500));
+        console.log('[API] Has data.data?', !!data.data);
+        console.log('[API] Has emotes?', !!data.data?.emotes);
+        console.log('[API] Has items?', !!data.data?.emotes?.items);
+      }
       
       if (data.data?.emotes?.items) {
         const result = {
@@ -69,26 +72,26 @@ const API = {
 
   async fetchGlobalEmotes() {
     if (this.cache.has('global')) {
-      console.log('[API] Returning cached global emotes');
+      if (this.DEBUG) console.log('[API] Returning cached global emotes');
       return this.cache.get('global');
     }
 
     try {
       const url = `${this.BASE_URL}/emote-sets/global`;
-      console.log('[API] Fetching from:', url);
+      if (this.DEBUG) console.log('[API] Fetching from:', url);
       
       const response = await fetch(url);
-      console.log('[API] Response status:', response.status);
+      if (this.DEBUG) console.log('[API] Response status:', response.status);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
       const result = await response.json();
-      console.log('[API] Raw data received, emotes count:', result.emotes?.length);
+      if (this.DEBUG) console.log('[API] Raw data received, emotes count:', result.emotes?.length);
       
       const emotes = this.normalizeEmotes(result.emotes || []);
-      console.log('[API] Normalized emotes:', emotes.length);
+      if (this.DEBUG) console.log('[API] Normalized emotes:', emotes.length);
       
       this.cache.set('global', emotes);
       return emotes;
@@ -101,7 +104,7 @@ const API = {
   async searchEmotes(query, page = 1, limit = 100) {
     const cacheKey = `search_${query}_${page}`;
     if (this.cache.has(cacheKey)) {
-      console.log('[API] Returning cached search results');
+      if (this.DEBUG) console.log('[API] Returning cached search results');
       return this.cache.get(cacheKey);
     }
 
@@ -125,7 +128,7 @@ const API = {
         }
       `;
       
-      console.log('[API] Sending GQL request...');
+      if (this.DEBUG) console.log('[API] Sending GQL request...');
       
       const response = await fetch('https://7tv.io/v3/gql', {
         method: 'POST',
@@ -136,22 +139,24 @@ const API = {
         })
       });
       
-      console.log('[API] GQL response status:', response.status);
+      if (this.DEBUG) console.log('[API] GQL response status:', response.status);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('[API] GQL full response:', JSON.stringify(data).substring(0, 500));
-      console.log('[API] GQL data keys:', data ? Object.keys(data).join(',') : 'null');
-      console.log('[API] GQL data.data:', data.data ? Object.keys(data.data).join(',') : 'null');
-      console.log('[API] GQL data received, count:', data.data?.emotes?.count);
-      console.log('[API] GQL items:', data.data?.emotes?.items?.length);
+      if (this.DEBUG) {
+        console.log('[API] GQL full response:', JSON.stringify(data).substring(0, 500));
+        console.log('[API] GQL data keys:', data ? Object.keys(data).join(',') : 'null');
+        console.log('[API] GQL data.data:', data.data ? Object.keys(data.data).join(',') : 'null');
+        console.log('[API] GQL data received, count:', data.data?.emotes?.count);
+        console.log('[API] GQL items:', data.data?.emotes?.items?.length);
+      }
       
       if (data.data?.emotes?.items) {
         const normalized = this.normalizeEmotes(data.data.emotes.items);
-        console.log('[API] Normalized:', normalized.length, 'emotes');
+        if (this.DEBUG) console.log('[API] Normalized:', normalized.length, 'emotes');
         
         const result = {
           emotes: normalized,
@@ -165,20 +170,22 @@ const API = {
     } catch (error) {
       console.error('[API] Search failed:', error.message);
       console.error('[API] Error stack:', error.stack);
-      console.log('[API] Falling back to local filter');
+      if (this.DEBUG) console.log('[API] Falling back to local filter');
       const allEmotes = await this.fetchGlobalEmotes();
       const filtered = allEmotes.filter(emote => 
         emote.name.toLowerCase().includes(query.toLowerCase())
       );
-      console.log('[API] Local filter found:', filtered.length);
+      if (this.DEBUG) console.log('[API] Local filter found:', filtered.length);
       return { emotes: filtered, total: filtered.length };
     }
   },
 
   normalizeEmotes(emotes) {
-    console.log('[API] Normalizing emotes, count:', emotes.length);
-    if (emotes.length > 0) {
-      console.log('[API] Sample raw emote:', JSON.stringify(emotes[0]).substring(0, 200));
+    if (this.DEBUG) {
+      console.log('[API] Normalizing emotes, count:', emotes.length);
+      if (emotes.length > 0) {
+        console.log('[API] Sample raw emote:', JSON.stringify(emotes[0]).substring(0, 200));
+      }
     }
     
     if (!Array.isArray(emotes)) {
