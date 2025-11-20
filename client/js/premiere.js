@@ -2,7 +2,16 @@ const Premiere = {
   csInterface: null,
 
   init() {
-    this.csInterface = new CSInterface();
+    try {
+      if (typeof CSInterface !== 'undefined') {
+        this.csInterface = new CSInterface();
+        console.log('[Premiere] CSInterface initialized');
+      } else {
+        console.warn('[Premiere] CSInterface not available');
+      }
+    } catch (error) {
+      console.error('[Premiere] Failed to initialize CSInterface:', error);
+    }
   },
 
   async importEmote(emoteData) {

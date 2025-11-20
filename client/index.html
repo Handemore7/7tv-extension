@@ -18,13 +18,17 @@
     <div class="filters">
       <label><input type="checkbox" id="filter-animated" checked> Animated</label>
       <label><input type="checkbox" id="filter-static" checked> Static</label>
+      <label><input type="checkbox" id="debug-mode"> Debug</label>
     </div>
     
     <div id="emote-grid" class="emote-grid">
       <div class="loading">Loading emotes...</div>
     </div>
+    
+    <div id="debug-console" class="debug-console" style="display: none;"></div>
   </div>
 
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/cep-interface@latest/dist/index.js"></script>
   <script src="js/api.js"></script>
   <script src="js/premiere.js"></script>
   <script src="js/main.js"></script>

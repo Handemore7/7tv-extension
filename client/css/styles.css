@@ -79,6 +79,7 @@ h1 {
 }
 
 .emote-item {
+  position: relative;
   aspect-ratio: 1;
   background: #2d2d2d;
   border: 2px solid #404040;
@@ -143,4 +144,66 @@ h1 {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #505050;
+}
+
+.animated-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: #00ff7f;
+  color: #000;
+  font-size: 8px;
+  font-weight: bold;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #2d2d2d;
+  color: #e0e0e0;
+  padding: 12px 20px;
+  border-radius: 6px;
+  border: 2px solid #00ff7f;
+  font-size: 13px;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.3s;
+  z-index: 1000;
+}
+
+.notification.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.notification.error {
+  border-color: #ff6b6b;
+  background: #3d2d2d;
+}
+
+.debug-console {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 150px;
+  background: #000;
+  color: #0f0;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  padding: 8px;
+  overflow-y: auto;
+  border-top: 2px solid #00ff7f;
+  z-index: 999;
+}
+
+.debug-console div {
+  margin-bottom: 2px;
+}
+
+.emote-item {
+  position: relative;
 }
