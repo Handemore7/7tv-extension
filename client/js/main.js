@@ -172,14 +172,29 @@ function renderEmotes(emotes = filteredEmotes) {
 }
 
 async function handleEmoteClick(emote) {
+  const item = event.currentTarget;
+  item.classList.add('importing');
+  
   const format = API.getBestFormat(emote.animated);
   const url = API.getEmoteUrl(emote.id, '4x', format);
   
+  Debug.log('Importing emote', { name: emote.name, url, animated: emote.animated });
+  
   try {
-    await Premiere.downloadAndImport(emote.id, emote.name, url, emote.animated);
-    showNotification(`Imported: ${emote.name}`);
+    const result = await Premiere.downloadAndImport(emote.id, emote.name, url, emote.animated);
+    
+    if (result.addedToTimeline) {
+      showNotification(`✓ ${emote.name} added to timeline`);
+    } else {
+      showNotification(`✓ ${emote.name} imported to project`);
+    }
+    
+    Debug.log('Import successful', result);
   } catch (error) {
-    showNotification(`Failed to import ${emote.name}`, true);
+    Debug.error('Import failed', error);
+    showNotification(`✗ Failed: ${error.message}`, true);
+  } finally {
+    item.classList.remove('importing');
   }
 }
 
@@ -198,5 +213,10 @@ function showNotification(message, isError = false) {
     setTimeout(() => notification.remove(), 300);
   }, 2000);
 }
+
+window.addEventListener('beforeunload', () => {
+  Debug.log('Cleaning up before close...');
+  Premiere.cleanupTempFiles();
+});
 
 document.addEventListener('DOMContentLoaded', init);

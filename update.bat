@@ -10,6 +10,7 @@ set "TARGET_DIR=%CEP_DIR%\7tv-extension"
 echo Updating extension files...
 xcopy /E /I /Y "%~dp0client" "%TARGET_DIR%\client" >nul 2>&1
 xcopy /E /I /Y "%~dp0host" "%TARGET_DIR%\host" >nul 2>&1
+xcopy /E /I /Y "%~dp0CSXS" "%TARGET_DIR%\CSXS" >nul 2>&1
 
 if %errorlevel% equ 0 (
     echo SUCCESS: Extension updated

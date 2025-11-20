@@ -58,12 +58,12 @@ This plugin provides seamless access to the 7TV emote library (https://7tv.app/)
 - [x] Handle different image formats (WebP, GIF, PNG)
 
 ### Phase 3: Premiere Pro Integration
-- [ ] Implement emote download functionality
-- [ ] Create temp directory management
-- [ ] ExtendScript: Import media to project
-- [ ] ExtendScript: Add media to timeline at playhead
-- [ ] Handle WebP to PNG/JPEG conversion if needed
-- [ ] Handle animated emotes (GIF support)
+- [x] Implement emote download functionality
+- [x] Create temp directory management
+- [x] ExtendScript: Import media to project
+- [x] ExtendScript: Add media to timeline at playhead
+- [x] Handle WebP to PNG/JPEG conversion if needed
+- [x] Handle animated emotes (GIF support)
 
 ### Phase 4: Polish & Features
 - [ ] Add favorites system
