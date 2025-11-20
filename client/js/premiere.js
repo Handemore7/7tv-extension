@@ -55,8 +55,9 @@ const Premiere = {
       const extension = isAnimated ? 'gif' : 'webp';
       const fileName = emoteName.replace(/[^a-zA-Z0-9_-]/g, '_') + '_' + emoteId.substring(0, 8) + '.' + extension;
       
-      Debug.log('Starting file write', fileName);
-      await this.evalScript(`startFileWrite('${fileName}')`);
+      const safeFileName = fileName.replace(/'/g, "\\'" );
+      Debug.log('Starting file write', safeFileName);
+      await this.evalScript(`startFileWrite('${safeFileName}')`);
       
       const chunkSize = 1000;
       const totalChunks = Math.ceil(bytes.length / chunkSize);

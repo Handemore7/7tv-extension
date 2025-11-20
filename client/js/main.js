@@ -13,6 +13,8 @@ let recentEmotes = [];
 const MAX_RECENT = 20;
 let importSize = '4x';
 
+const MAX_DEBUG_ENTRIES = 100;
+
 const Debug = {
   log(message, data = null) {
     console.log(`[7TV] ${message}`, data || '');
@@ -21,6 +23,11 @@ const Debug = {
       const entry = document.createElement('div');
       entry.textContent = `${new Date().toLocaleTimeString()} - ${message} ${data ? JSON.stringify(data) : ''}`;
       debugConsole.appendChild(entry);
+      
+      while (debugConsole.children.length > MAX_DEBUG_ENTRIES) {
+        debugConsole.removeChild(debugConsole.firstChild);
+      }
+      
       debugConsole.scrollTop = debugConsole.scrollHeight;
     }
   },
@@ -32,6 +39,11 @@ const Debug = {
       entry.style.color = '#ff6b6b';
       entry.textContent = `${new Date().toLocaleTimeString()} - ERROR: ${message} - ${error}`;
       debugConsole.appendChild(entry);
+      
+      while (debugConsole.children.length > MAX_DEBUG_ENTRIES) {
+        debugConsole.removeChild(debugConsole.firstChild);
+      }
+      
       debugConsole.scrollTop = debugConsole.scrollHeight;
     }
   }

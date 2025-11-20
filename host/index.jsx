@@ -1,62 +1,67 @@
-function importEmoteFromBase64(fileName, base64Data) {
+var currentFile = null;
+var currentFilePath = '';
+
+function startFileWrite(fileName) {
   try {
     if (!app.project) {
-      return JSON.stringify({ success: false, error: 'No project open' });
+      return '{"success":false,"error":"No project open"}';
     }
     
     var tempFolder = createTempFolder();
-    var filePath = tempFolder + fileName;
+    currentFilePath = tempFolder + fileName;
+    currentFile = new File(currentFilePath);
+    currentFile.encoding = 'BINARY';
+    currentFile.open('w');
     
-    var file = new File(filePath);
-    file.encoding = 'BINARY';
-    file.open('w');
-    file.write(decodeBase64(base64Data));
-    file.close();
-    
-    if (!file.exists) {
-      return JSON.stringify({ success: false, error: 'Failed to save file' });
-    }
-    
-    var importedItems = app.project.importFiles([filePath]);
-    if (!importedItems || importedItems.length === 0) {
-      return JSON.stringify({ success: false, error: 'Import failed' });
-    }
-    
-    var projectItem = importedItems[0];
-    
-    if (app.project.activeSequence) {
-      var videoTrack = app.project.activeSequence.videoTracks[0];
-      var currentTime = app.project.activeSequence.getPlayerPosition();
-      videoTrack.insertClip(projectItem, currentTime);
-      return JSON.stringify({ success: true, addedToTimeline: true });
-    }
-    
-    return JSON.stringify({ success: true, addedToTimeline: false });
+    return '{"success":true}';
   } catch (e) {
-    return JSON.stringify({ success: false, error: e.toString() });
+    return '{"success":false,"error":"' + e.toString() + '"}';
   }
 }
 
-function decodeBase64(base64) {
-  var decoded = '';
-  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
-  
-  for (var i = 0; i < base64.length; i += 4) {
-    var enc1 = chars.indexOf(base64.charAt(i));
-    var enc2 = chars.indexOf(base64.charAt(i + 1));
-    var enc3 = chars.indexOf(base64.charAt(i + 2));
-    var enc4 = chars.indexOf(base64.charAt(i + 3));
+function writeFileChunk(byteArray) {
+  try {
+    if (!currentFile) {
+      return '{"success":false,"error":"No file open"}';
+    }
     
-    var chr1 = (enc1 << 2) | (enc2 >> 4);
-    var chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
-    var chr3 = ((enc3 & 3) << 6) | enc4;
+    for (var i = 0; i < byteArray.length; i++) {
+      currentFile.write(String.fromCharCode(byteArray[i]));
+    }
     
-    decoded += String.fromCharCode(chr1);
-    if (enc3 != 64) decoded += String.fromCharCode(chr2);
-    if (enc4 != 64) decoded += String.fromCharCode(chr3);
+    return '{"success":true}';
+  } catch (e) {
+    return '{"success":false,"error":"' + e.toString() + '"}';
   }
-  
-  return decoded;
+}
+
+function finishFileWrite() {
+  try {
+    if (!currentFile) {
+      return '{"success":false,"error":"No file open"}';
+    }
+    
+    currentFile.close();
+    
+    var file = new File(currentFilePath);
+    if (!file.exists) {
+      return '{"success":false,"error":"File not saved"}';
+    }
+    
+    app.project.importFiles([currentFilePath]);
+    
+    currentFile = null;
+    currentFilePath = '';
+    
+    return '{"success":true,"addedToTimeline":false}';
+  } catch (e) {
+    if (currentFile) {
+      try { currentFile.close(); } catch (ce) {}
+      currentFile = null;
+    }
+    var errorMsg = e.toString().replace(/"/g, "'");
+    return '{"success":false,"error":"' + errorMsg + '"}';
+  }
 }
 
 function createTempFolder() {
@@ -74,9 +79,17 @@ function createTempFolder() {
   return tempFolder;
 }
 
-
-
-
+function cleanupFailedWrite() {
+  try {
+    if (currentFile) {
+      currentFile.close();
+      currentFile = null;
+    }
+    return '{"success":true}';
+  } catch (e) {
+    return '{"success":false}';
+  }
+}
 
 function cleanupTempFiles() {
   try {
@@ -92,32 +105,8 @@ function cleanupTempFiles() {
       }
     }
     
-    return JSON.stringify({ success: true });
+    return '{"success":true}';
   } catch (e) {
-    return JSON.stringify({ success: false, error: e.toString() });
-  }
-}
-
-function testDownload() {
-  try {
-    var tempFolder = createTempFolder();
-    var testUrl = 'https://cdn.7tv.app/emote/01GGD5PJA8000FH13S498E9D8X/2x.webp';
-    var testFile = tempFolder + 'test.webp';
-    
-    var success = downloadFile(testUrl, testFile);
-    
-    var file = new File(testFile);
-    var exists = file.exists;
-    var size = exists ? file.length : 0;
-    
-    return JSON.stringify({ 
-      success: success, 
-      exists: exists,
-      size: size,
-      path: testFile,
-      tempFolder: tempFolder
-    });
-  } catch (e) {
-    return JSON.stringify({ success: false, error: e.toString() });
+    return '{"success":false}';
   }
 }
