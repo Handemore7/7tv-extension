@@ -19,14 +19,23 @@
       <label><input type="checkbox" id="filter-animated" checked> Animated</label>
       <label><input type="checkbox" id="filter-static" checked> Static</label>
       <label><input type="checkbox" id="debug-mode"> Debug</label>
+      <div class="emote-count" id="emote-count"></div>
     </div>
     
     <div id="emote-grid" class="emote-grid">
       <div class="loading">Loading emotes...</div>
     </div>
     
+    <div class="pagination" id="pagination" style="display: none;">
+      <button id="prev-page" class="page-btn">&larr; Previous</button>
+      <span id="page-info" class="page-info">Page 1 of 1</span>
+      <button id="next-page" class="page-btn">Next &rarr;</button>
+    </div>
+    
     <div id="debug-console" class="debug-console" style="display: none;"></div>
   </div>
+  
+  <div class="status-bar" id="status-bar">Ready</div>
 
   <script src="lib/CSInterface.js"></script>
   <script src="js/api.js"></script>

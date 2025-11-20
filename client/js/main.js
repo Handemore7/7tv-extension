@@ -1,6 +1,9 @@
 let allEmotes = [];
 let filteredEmotes = [];
 let currentPage = 1;
+let totalPages = 1;
+let totalCount = 0;
+let currentQuery = '';
 let isLoading = false;
 let searchTimeout = null;
 let debugMode = false;
@@ -29,6 +32,39 @@ const Debug = {
   }
 };
 
+if (typeof console !== 'undefined') {
+  const originalLog = console.log;
+  const originalError = console.error;
+  
+  console.log = function(...args) {
+    originalLog.apply(console, args);
+    if (debugMode && args[0] && args[0].includes('[API]')) {
+      const debugConsole = document.getElementById('debug-console');
+      if (debugConsole) {
+        const entry = document.createElement('div');
+        entry.style.color = '#00aaff';
+        entry.textContent = `${new Date().toLocaleTimeString()} - ${args.join(' ')}`;
+        debugConsole.appendChild(entry);
+        debugConsole.scrollTop = debugConsole.scrollHeight;
+      }
+    }
+  };
+  
+  console.error = function(...args) {
+    originalError.apply(console, args);
+    if (debugMode && args[0] && args[0].includes('[API]')) {
+      const debugConsole = document.getElementById('debug-console');
+      if (debugConsole) {
+        const entry = document.createElement('div');
+        entry.style.color = '#ff6b6b';
+        entry.textContent = `${new Date().toLocaleTimeString()} - ${args.join(' ')}`;
+        debugConsole.appendChild(entry);
+        debugConsole.scrollTop = debugConsole.scrollHeight;
+      }
+    }
+  };
+}
+
 async function init() {
   Debug.log('Initializing extension...');
   
@@ -48,8 +84,8 @@ async function init() {
     Debug.log('Debug mode toggled', debugMode);
   });
   
-  const grid = document.getElementById('emote-grid');
-  grid.addEventListener('scroll', handleScroll);
+  document.getElementById('prev-page').addEventListener('click', () => goToPage(currentPage - 1));
+  document.getElementById('next-page').addEventListener('click', () => goToPage(currentPage + 1));
   
   Debug.log('Starting to load emotes...');
   await loadEmotes();
@@ -70,8 +106,14 @@ async function loadEmotes() {
     Debug.log('Emotes fetched', { count: allEmotes.length });
     
     filteredEmotes = [...allEmotes];
+    totalCount = allEmotes.length;
+    currentPage = 1;
+    totalPages = 1;
+    currentQuery = '';
+    
     Debug.log('Rendering emotes...');
     renderEmotes();
+    updatePagination();
     Debug.log('Emotes rendered successfully');
   } catch (error) {
     Debug.error('Failed to load emotes', error);
@@ -82,32 +124,73 @@ async function loadEmotes() {
 }
 
 function handleSearch(e) {
-  const query = e.target.value.trim().toLowerCase();
+  const query = e.target.value.trim();
   
   clearTimeout(searchTimeout);
   
-  searchTimeout = setTimeout(() => {
+  searchTimeout = setTimeout(async () => {
     Debug.log('Search query', query);
     
     if (query.length === 0) {
       filteredEmotes = [...allEmotes];
-    } else {
-      filteredEmotes = allEmotes.filter(emote => 
-        emote.name.toLowerCase().includes(query)
-      );
-      Debug.log('Filtered results', { count: filteredEmotes.length });
+      totalCount = allEmotes.length;
+      currentPage = 1;
+      totalPages = 1;
+      currentQuery = '';
+      applyFilters();
+      updatePagination();
+    } else if (query.length >= 2) {
+      await performSearch(query, 1);
     }
-    
-    applyFilters();
   }, 300);
 }
 
-function handleScroll(e) {
-  const grid = e.target;
-  const scrollBottom = grid.scrollHeight - grid.scrollTop - grid.clientHeight;
+async function performSearch(query, page = 1) {
+  const grid = document.getElementById('emote-grid');
+  grid.innerHTML = '<div class="loading">Searching...</div>';
   
-  if (scrollBottom < 100 && !isLoading) {
-    // Placeholder for pagination
+  Debug.log('Searching for', query + ' page ' + page);
+  currentQuery = query;
+  currentPage = page;
+  
+  try {
+    const result = await API.searchEmotes(query, page);
+    Debug.log('Search results', { count: result.emotes.length, total: result.total });
+    filteredEmotes = result.emotes;
+    totalCount = result.total;
+    totalPages = Math.ceil(result.total / 100);
+    applyFilters();
+    updatePagination();
+  } catch (error) {
+    Debug.error('Search failed', error.message);
+    grid.innerHTML = `<div class="error">Search failed: ${error.message}</div>`;
+  }
+}
+
+function updatePagination() {
+  const pagination = document.getElementById('pagination');
+  
+  if (totalPages <= 1) {
+    pagination.style.display = 'none';
+    return;
+  }
+  
+  pagination.style.display = 'flex';
+  
+  const prevBtn = document.getElementById('prev-page');
+  const nextBtn = document.getElementById('next-page');
+  const pageInfo = document.getElementById('page-info');
+  
+  prevBtn.disabled = currentPage === 1;
+  nextBtn.disabled = currentPage >= totalPages;
+  pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+}
+
+async function goToPage(page) {
+  if (page < 1 || page > totalPages || isLoading) return;
+  
+  if (currentQuery) {
+    await performSearch(currentQuery, page);
   }
 }
 
@@ -126,15 +209,33 @@ function applyFilters() {
 
 function renderEmotes(emotes = filteredEmotes) {
   const grid = document.getElementById('emote-grid');
+  const countEl = document.getElementById('emote-count');
+  const statusBar = document.getElementById('status-bar');
   
   Debug.log('Rendering emotes', { count: emotes.length });
   
+  const start = currentQuery ? (currentPage - 1) * 100 + 1 : 1;
+  const end = currentQuery ? Math.min(start + emotes.length - 1, totalCount) : emotes.length;
+  
+  if (totalCount > emotes.length) {
+    countEl.textContent = `${start}-${end} of ${totalCount}`;
+  } else {
+    countEl.textContent = `${emotes.length} emote${emotes.length !== 1 ? 's' : ''}`;
+  }
+  
   if (emotes.length === 0) {
     grid.innerHTML = '<div class="loading">No emotes found</div>';
+    statusBar.textContent = 'No results';
     return;
   }
   
   grid.innerHTML = '';
+  
+  if (totalCount > emotes.length) {
+    statusBar.textContent = `Showing ${start}-${end} of ${totalCount} emotes`;
+  } else {
+    statusBar.textContent = `Showing ${emotes.length} emotes`;
+  }
   
   emotes.forEach(emote => {
     const item = document.createElement('div');

@@ -64,6 +64,8 @@ This plugin provides seamless access to the 7TV emote library (https://7tv.app/)
 - [x] ExtendScript: Add media to timeline at playhead
 - [x] Handle WebP to PNG/JPEG conversion if needed
 - [x] Handle animated emotes (GIF support)
+- [x] Fix API search to access full 7TV database
+- [x] Improve UX with emote count and status bar
 
 ### Phase 4: Polish & Features
 - [ ] Add favorites system
